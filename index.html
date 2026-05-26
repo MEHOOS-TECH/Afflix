@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEOSTREAM - Neon Anime Streaming Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #0b0813;
+        }
+        .anime-logo {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .neon-glow-purple {
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
+        }
+        .neon-glow-red {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.35);
+        }
+        .glassmorphism {
+            background: rgba(15, 11, 28, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0813;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a855f7;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-gray-200 min-h-screen relative overflow-x-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-[#0b0813] to-[#0b0813]">
+    
+    <div class="fixed inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none"></div>
+
+    <nav class="sticky top-0 z-50 bg-[#0b0813]/70 backdrop-blur-md border-b border-purple-500/10 px-6 py-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div onclick="showPage('home-view')" class="anime-logo text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-500 select-none cursor-pointer">
+                NEO<span class="text-white">STREAM</span>
+            </div>
+            <div class="flex items-center gap-6 text-sm font-medium">
+                <button onclick="showPage('home-view')" class="hover:text-red-400 transition-colors cursor-pointer">Home</button>
+                <button onclick="showPage('categories-view')" class="hover:text-purple-400 transition-colors cursor-pointer">Categories</button>
+                <button onclick="showPage('upload-view')" class="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 px-4 py-1.5 rounded-xl transition-all cursor-pointer">Upload Node</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 relative z-10 min-h-[80vh]">
+        
+        <section id="home-view" class="space-y-12 page-section">
+            <div class="glassmorphism p-8 rounded-2xl text-center space-y-4 border border-purple-500/20 neon-glow-purple">
+                <h1 class="anime-logo text-4xl md:text-5xl font-black bg-gradient-to-r from-red-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent tracking-tight">
+                    STREAM YOUR NEXT ADVENTURE
+                </h1>
+                <p class="text-gray-400 max-w-md mx-auto text-sm">Discover community-uploaded subbed and dubbed content instantaneously.</p>
+                <div class="max-w-xl mx-auto mt-4">
+                    <input type="text" id="main-search" oninput="handleSearch(this.value)" placeholder="🔥 Search anime by title dynamically..." class="w-full bg-[#120d24] border border-purple-500/30 rounded-xl px-5 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-500/60 focus:ring-1 focus:ring-red-500/60 transition-all text-sm">
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-400 mb-6 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-purple-500 rounded-full inline-block"></span> TRENDING OVERVIEW
+                </h2>
+                <div id="trending-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    </div>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-purple-400 mb-6 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-red-500 rounded-full inline-block"></span> RECENTLY ADDED FEED
+                </h2>
+                <div id="recent-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    </div>
+            </div>
+        </section>
+
+        <section id="watch-view" class="space-y-6 page-section hidden">
+            <button onclick="showPage('home-view')" class="text-xs text-gray-400 hover:text-white flex items-center gap-2 bg-purple-500/10 px-3 py-1.5 rounded-lg border border-purple-500/20 cursor-pointer">
+                ← Return to Dashboard Overview
+            </button>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-purple-500/20 neon-glow-purple">
+                        <video id="player-node" controls class="w-full h-full object-contain" src=""></video>
+                    </div>
+                    <div class="glassmorphism p-6 rounded-2xl space-y-4">
+                        <div class="flex justify-between items-start gap-4">
+                            <div>
+                                <h1 id="player-title" class="text-2xl md:text-3xl font-black text-white">Anime Title Loader</h1>
+                                <p id="player-date" class="text-xs text-gray-500 mt-1">Uploaded: --/--/----</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button id="like-btn" class="flex items-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white px-4 py-2 rounded-xl border border-red-500/30 transition-all text-sm cursor-pointer">
+                                    ❤️ <span id="player-likes">0</span>
+                                </button>
+                                <a id="download-btn" href="#" download target="_blank" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm transition-all shadow-lg shadow-purple-600/20 font-semibold cursor-pointer">
+                                    Download Media
+                                </a>
+                            </div>
+                        </div>
+                        <div id="player-genres" class="flex gap-2 flex-wrap"></div>
+                        <hr class="border-purple-500/10">
+                        <p id="player-desc" class="text-gray-300 text-sm leading-relaxed">Detailed series narrative brief text container loading placeholder content mapping arrays...</p>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="glassmorphism p-6 rounded-2xl">
+                        <h3 class="font-bold text-lg mb-4 text-white flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-purple-500 rounded-sm"></span> Episode Directory
+                        </h3>
+                        <div class="space-y-2">
+                            <button class="w-full text-left p-3 rounded-xl bg-purple-500/20 border border-purple-500/40 text-sm text-purple-200 font-medium">
+                                Episode 01 - Pilot Content Node Stream
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="upload-view" class="max-w-2xl mx-auto page-section hidden">
+            <div class="glassmorphism p-8 rounded-2xl border border-purple-500/20 neon-glow-purple">
+                <h1 class="anime-logo text-2xl font-black mb-6 text-white tracking-wide">PUBLIC DATA DEPLOYMENT NODE</h1>
+                <form id="upload-form" onsubmit="executeMediaPublish(event)" class="space-y-6 text-sm">
+                    <div>
+                        <label class="block text-gray-400 font-medium mb-2">Anime Production Title</label>
+                        <input type="text" id="form-title" required class="w-full bg-[#120d24] border border-purple-500/20 rounded-xl px-4 py-2.5 focus:outline-none focus:border-red-500/50 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 font-medium mb-2">Synopsis Meta Description</label>
+                        <textarea id="form-desc" rows="4" required class="w-full bg-[#120d24] border border-purple-500/20 rounded-xl px-4 py-2.5 focus:outline-none focus:border-red-500/50 text-white"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 font-medium mb-2">Categorization Tags (Comma-Separated)</label>
+                        <input type="text" id="form-genres" placeholder="e.g., Action, Fantasy, Slice of Life" required class="w-full bg-[#120d24] border border-purple-500/20 rounded-xl px-4 py-2.5 focus:outline-none focus:border-red-500/50 text-white">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-400 font-medium mb-2">Cover Artwork Image Asset</label>
+                            <input type="file" id="form-thumb" accept="image/*" required class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-600/20 file:text-purple-300 hover:file:bg-purple-600/30 cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 font-medium mb-2">Video Episode Source (.mp4 container)</label>
+                            <input type="file" id="form-video" accept="video/*" required class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-500/20 file:text-red-300 hover:file:bg-red-500/30 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div id="progress-bar-container" class="space-y-2 hidden">
+                        <div class="flex justify-between text-xs text-purple-400">
+                            <span>Uploading package configurations...</span>
+                            <span id="progress-text">0%</span>
+                        </div>
+                        <div class="w-full bg-[#120d24] rounded-full h-2 overflow-hidden">
+                            <div id="progress-fill" class="bg-gradient-to-r from-purple-500 to-red-500 h-full w-0 transition-all duration-200"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-red-600 to-purple-600 hover:from-red-500 hover:to-purple-500 text-white py-3 rounded-xl font-bold tracking-wide transition-all shadow-lg cursor-pointer">
+                        GENERATE GLOBAL RECORD METADATA
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <section id="categories-view" class="space-y-8 page-section hidden">
+            <div>
+                <h2 class="text-xl font-bold mb-4 text-white">Filter Catalog Collections</h2>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterCategory('All')" class="px-4 py-2 rounded-xl border border-purple-500/30 bg-purple-500/20 text-sm text-white font-medium cursor-pointer">All Series</button>
+                    <button onclick="filterCategory('Action')" class="px-4 py-2 rounded-xl border border-purple-500/10 bg-purple-500/5 text-sm text-gray-400 cursor-pointer hover:border-purple-500/30">Action</button>
+                    <button onclick="filterCategory('Fantasy')" class="px-4 py-2 rounded-xl border border-purple-500/10 bg-purple-500/5 text-sm text-gray-400 cursor-pointer hover:border-purple-500/30">Fantasy</button>
+                    <button onclick="filterCategory('Romance')" class="px-4 py-2 rounded-xl border border-purple-500/10 bg-purple-500/5 text-sm text-gray-400 cursor-pointer hover:border-purple-500/30">Romance</button>
+                    <button onclick="filterCategory('Comedy')" class="px-4 py-2 rounded-xl border border-purple-500/10 bg-purple-500/5 text-sm text-gray-400 cursor-pointer hover:border-purple-500/30">Comedy</button>
+                </div>
+            </div>
+            <div id="category-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-purple-500/10 bg-[#0b0813]/80 backdrop-blur-md py-6 mt-20 text-center text-sm text-gray-500 relative z-10">
+        <p>© 2026 NeoStream Core Network Systems. Built for anime fans. Follow fair use guidelines.</p>
+        <button onclick="alert('DMCA Safe Harbor Protocol Initialized. Please transmit queries via official compliance channels.')" class="text-xs text-purple-500/50 hover:text-purple-400 mt-2 block mx-auto underline cursor-pointer">DMCA Safe Harbor Compliance Panel</button>
+    </footer>
+
+    <script>
+        // 1. Initialize Supabase Connection Client configuration pointers
+        const SUPABASE_URL = "https://uqpqcaicarwmpucdpcfc.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_1d5e6_Ucz34__qfSYwEH-g_9j9NBWtj";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let localAnimeCache = [];
+        let activeWatchItem = null;
+
+        // 2. Fetch and Cache Global Production Rows from Postgres Data Nodes
+        async function synchronizeApplicationDataFeed() {
+            try {
+                const { data, error } = await _supabase
+                    .from('anime')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                localAnimeCache = data || [];
+                renderHomeLayouts(localAnimeCache);
+            } catch (err) {
+                console.error("Pipeline failure synchronization operation error metrics:", err);
+            }
+        }
+
+        // 3. Render Dashboard Elements array mapping interfaces
+        function renderHomeLayouts(items) {
+            const trendingGrid = document.getElementById('trending-grid');
+            const recentGrid = document.getElementById('recent-grid');
+            
+            trendingGrid.innerHTML = '';
+            recentGrid.innerHTML = '';
+
+            if (items.length === 0) {
+                const standardFallback = `<div class='col-span-full text-center text-gray-500 text-xs py-8'>No active production records mapped to infrastructure elements. Create a new data upload entry row node.</div>`;
+                trendingGrid.innerHTML = standardFallback;
+                recentGrid.innerHTML = standardFallback;
+                return;
+            }
+
+            // High View Metrics Mapping = Trending
+            const trendingSorted = [...items].sort((a, b) => (b.views || 0) - (a.views || 0));
+
+            trendingSorted.slice(0, 4).forEach(item => {
+                trendingGrid.innerHTML += generateCardHTML(item);
+            });
+
+            items.forEach(item => {
+                recentGrid.innerHTML += generateCardHTML(item);
+            });
+        }
+
+        function generateCardHTML(anime) {
+            const parsedGenres = Array.isArray(anime.genre) ? anime.genre : [];
+            const tagSpans = parsedGenres.slice(0, 2).map(t => `<span class="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">${t}</span>`).join('');
+            
+            return `
+                <div onclick="initializeMediaPlayerStream('${anime.id}')" class="glassmorphism rounded-xl overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:border-red-500/50 hover:neon-glow-red">
+                    <div class="relative aspect-[16/10] w-full overflow-hidden bg-purple-950/20">
+                        <img src="${anime.cover_image || 'https://images.unsplash.com/photo-1578632767115-351597cf2477'}" alt="${anime.title}" class="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                        <span class="absolute bottom-2 right-2 bg-purple-600/90 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-sm border border-purple-400/30">${anime.episode_count || 1} EPS</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex gap-2 mb-2">${tagSpans}</div>
+                        <h3 class="font-bold text-base text-white group-hover:text-red-400 transition-colors line-clamp-1">${anime.title}</h3>
+                        <p class="text-gray-400 text-xs mt-1 line-clamp-2">${anime.description || 'No description provided.'}</p>
+                        <div class="flex justify-between items-center mt-4 text-[10px] text-gray-500 border-t border-purple-500/5 pt-2">
+                            <span>Views: ${anime.views || 0}</span>
+                            <span>${new Date(anime.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 4. Client Search Engine Optimization Core Routines
+        function handleSearch(query) {
+            const filtered = localAnimeCache.filter(item => 
+                item.title.toLowerCase().includes(query.toLowerCase())
+            );
+            renderHomeLayouts(filtered);
+        }
+
+        // 5. Watch & Player Loader Execution Pipelines
+        async function initializeMediaPlayerStream(id) {
+            const targetItem = localAnimeCache.find(x => x.id === id);
+            if (!targetItem) return;
+
+            activeWatchItem = targetItem;
+            showPage('watch-view');
+
+            // Render details attributes map positions
+            document.getElementById('player-node').src = targetItem.video_url;
+            document.getElementById('player-title').innerText = targetItem.title;
+            document.getElementById('player-desc').innerText = targetItem.description;
+            document.getElementById('player-likes').innerText = targetItem.likes || 0;
+            document.getElementById('player-date').innerText = `Uploaded: ${new Date(targetItem.created_at).toLocaleDateString()}`;
+            document.getElementById('download-btn').href = targetItem.video_url;
+
+            const genresBox = document.getElementById('player-genres');
+            genresBox.innerHTML = '';
+            if (Array.isArray(targetItem.genre)) {
+                targetItem.genre.forEach(g => {
+                    genresBox.innerHTML += `<span class="text-xs font-semibold px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">${g}</span>`;
+                });
+            }
+
+            // Sync Increment views row to Supabase Cluster Database Engine
+            await _supabase.rpc('increment_view_count', { row_id: id });
+        }
+
+        // Like Button Core Updates Tracking
+        document.getElementById('like-btn').addEventListener('click', async () => {
+            if (!activeWatchItem) return;
+            const targetNewCount = (activeWatchItem.likes || 0) + 1;
+            activeWatchItem.likes = targetNewCount;
+            document.getElementById('player-likes').innerText = targetNewCount;
+
+            await _supabase
+                .from('anime')
+                .update({ likes: targetNewCount })
+                .eq('id', activeWatchItem.id);
+        </script>
+
+        <script>
+        async function executeMediaPublish(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('form-title').value;
+            const description = document.getElementById('form-desc').value;
+            const rawGenres = document.getElementById('form-genres').value;
+            const thumbFile = document.getElementById('form-thumb').files[0];
+            const videoFile = document.getElementById('form-video').files[0];
+
+            if (!title || !thumbFile || !videoFile) return alert('Provide required media payload files!');
+
+            const progressContainer = document.getElementById('progress-bar-container');
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            const submitBtn = document.getElementById('submit-btn');
+
+            try {
+                submitBtn.disabled = true;
+                progressContainer.classList.remove('hidden');
+                
+                // Track visual progression segments manually via state stages
+                updateProgressBar(15, "Uploading Thumbnail Cover Art...");
+                
+                // 1. Storage Upload Sequence -> Thumbnails
+                const thumbExt = thumbFile.name.split('.').pop();
+                const thumbPath = `${Date.now()}_cover.${thumbExt}`;
+                const { error: thumbErr } = await _supabase.storage.from('anime-thumbnails').upload(thumbPath, thumbFile);
+                if (thumbErr) throw thumbErr;
+
+                updateProgressBar(45, "Uploading Stream Video Container (this may take a bit)...");
+
+                // 2. Storage Upload Sequence -> Videos
+                const videoExt = videoFile.name.split('.').pop();
+                const videoPath = `${Date.now()}_stream.${videoExt}`;
+                const { error: videoErr } = await _supabase.storage.from('video-episodes').upload(videoPath, videoFile);
+                if (videoErr) throw videoErr;
+
+                updateProgressBar(80, "Resolving Public Media CDN Access URLs...");
+
+                // 3. Resolve Media Paths
+                const { data: thumbUrl } = _supabase.storage.from('anime-thumbnails').getPublicUrl(thumbPath);
+                const { data: videoUrl } = _supabase.storage.from('video-episodes').getPublicUrl(videoPath);
+
+                // Convert comma string tags into PostgreSQL array values format
+                const genreArray = rawGenres.split(',').map(item => item.trim()).filter(Boolean);
+
+                updateProgressBar(90, "Writing Metadata Registry Records to Cluster Tables...");
+
+                // 4. Perform Row Table Insertion Operation
+                const { error: insertErr } = await _supabase.from('anime').insert([{
+                    title: title,
+                    description: description,
+                    genre: genreArray,
+                    cover_image: thumbUrl.publicUrl,
+                    video_url: videoUrl.publicUrl,
+                    episode_count: 1,
+                    views: 0,
+                    likes: 0
+                }]);
+
+                if (insertErr) throw insertErr;
+
+                updateProgressBar(100, "Publication Matrix Execution Finished Successfully!");
+                alert('Anime content published live seamlessly!');
+                document.getElementById('upload-form').reset();
+                synchronizeApplicationDataFeed();
+                showPage('home-view');
+
+            } catch (err) {
+                console.error("Storage distribution pipeline break error tracking logs:", err);
+                alert(`Transaction Error: ${err.message || 'Check storage bucket permissions.'}`);
+            } finally {
+                submitBtn.disabled = false;
+                progressContainer.classList.add('hidden');
+            }
+        }
+
+        function updateProgressBar(percent, statusText) {
+            document.getElementById('progress-fill').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `${percent}%`;
+            console.log(`[DEPLOY OPERATION LOG]: ${statusText} -> ${percent}%`);
+        }
+
+        // 6. Category Sorting Pipeline Layout Filters
+        function filterCategory(targetCategory) {
+            const grid = document.getElementById('category-grid');
+            grid.innerHTML = '';
+
+            const matches = targetCategory === 'All' 
+                ? localAnimeCache 
+                : localAnimeCache.filter(x => Array.isArray(x.genre) && x.genre.some(g => g.toLowerCase() === targetCategory.toLowerCase()));
+
+            if (matches.length === 0) {
+                grid.innerHTML = `<div class='col-span-full text-center text-gray-500 text-xs py-8'>No series entries match the tag parameter: ${targetCategory}</div>`;
+                return;
+            }
+
+            matches.forEach(item => {
+                grid.innerHTML += generateCardHTML(item);
+            });
+        }
+
+        // 7. Base Engine Navigation Orchestrator Switches
+        function showPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(pageId).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (pageId === 'categories-view') {
+                filterCategory('All');
+            }
+            if (pageId !== 'watch-view') {
+                document.getElementById('player-node').pause();
+            }
+        }
+
+        // Core Init trigger call arrays
+        synchronizeApplicationDataFeed();
+    </script>
+</body>
+</html>
